@@ -1,3 +1,7 @@
+__English__ · [简体中文](README.zh-CN.md)
+
+---
+
 # Calibre News Delivery
 
 Leverages GitHub Actions to automate the delivery of Calibre News.
@@ -9,7 +13,7 @@ Leverages GitHub Actions to automate the delivery of Calibre News.
 ## Setup
 
 1) Create a project in your repositories using this template.
-2) Navigate to [ __[Settings](../../settings)__ > __[Environments](../../settings/environments)__ ] in the project.
+2) Navigate to [ [Settings](../../settings) > __[Environments](../../settings/environments)__ ] in the project.
 3) Click "__New environment__" to create a new one called `calibre-news`.
 4) Add the required "__environment secrets__" to it as follows.
 
@@ -23,7 +27,7 @@ Leverages GitHub Actions to automate the delivery of Calibre News.
 |PORT|Yes|SMTP port|465|
 |FORMAT|No|The ebook format|epub|
 
-5) Navigate to "[Actions](../../actions)" and click [ __Calibre News Delivery__ > __Run workflow__ ] to test.
+5) Navigate to "__[Actions](../../actions)__" and click [ __Calibre News Delivery__ > __Run workflow__ ] to test.
 
 ## Schedule
 
@@ -35,7 +39,7 @@ The default delivery is scheduled to occur daily at midnight (00:00) UTC. You ca
 
 Please refer to the "__[schedule](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule)__" documentation to specify an appropriate time. For example, if you are in a timezone that is UTC+8 and want the delivery to start at 6:00 AM every day, you can set the cron expression as `0 22 * * *`, calculated using the formula `UTC Time = Local Time − Offset`.
 
-Additionally, you can manually trigger the delivery on the "[Actions](../../actions)" page of your project.
+Additionally, you can manually trigger the delivery on the "__[Actions](../../actions)__" page of your project.
 
 ## Recipe
 

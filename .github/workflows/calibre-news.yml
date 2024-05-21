@@ -117,10 +117,10 @@ jobs:
         run: |
           while read -d '' ebook_path; do
             filename="$(basename "$ebook_path")"
-            title=${filename%.*}
+            title="${filename%.*}"
             echo "Sending: \"$filename\""
-            calibre-smtp -a "${filename}" -r $relay --port="$port" \
-              -e "${encrypt^^}" -u $from -p "$secret" -s "$title" \
+            calibre-smtp -a "${filename}" -r "$relay" --port="$port" \
+              -e "${encrypt^^}" -u "$from" -p "$secret" -s "$title" \
               "$from" "$to" "Deliver \"${title}\""
           done < <(find . -maxdepth 1 -type f -name "*.${ext,,}" -print0)
           echo "All jobs done"
