@@ -1,0 +1,126 @@
+name: Calibre News Delivery
+run-name: 'Calibre News Delivery: ${{ github.ref_name }}'
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+  # push:
+  #   branches: ['master']
+
+permissions:
+  contents: read
+
+jobs:
+  worker:
+    runs-on: ubuntu-latest
+    environment: calibre-news
+    env:
+      publisher: bookfere.com
+      author: Calibre News Delivery
+      relay: ${{ secrets.SMTP }}
+      port: ${{ secrets.PORT }}
+      encrypt: ${{ secrets.ENCRYPT }}
+      secret: ${{ secrets.SECRET }}
+      from: ${{ secrets.FROM }}
+      to: ${{ secrets.TO }}
+      ext: ${{ secrets.format || 'epub' }}
+    steps:
+      - name: Checking Variable
+        run: |
+          declare -A variables
+          declare -a absences
+          variables=(
+            'SMTP' "$relay" 'PORT' "$port" 'ENCRYPT' "$encrypt"
+            'SECRET' "$secret" 'FROM' "$from" 'TO' "$to")
+          for key in ${!variables[@]}; do
+            variable=${variables[$key]}
+            [ -n "$variable" ] || absences+=($key)
+          done
+          if [ ${#absences[@]} -gt 0 ]; then
+            variable_keys=$(echo ${absences[@]/%/,})
+            echo "Missing variable(s): ${variable_keys/%,/}"; exit 1
+          fi
+      - name: Retrieving Recipe
+        if: ${{ success() }}
+        uses: actions/checkout@v4
+      - name: Checking Recipe
+        if: ${{ success() }}
+        run: |
+          declare -A recipe_paths
+          add_recipe() {
+            local name="$(basename "$recipe_path")"
+            local key=$(echo "$name" | md5sum | cut -d ' ' -f 1)
+            echo "$key = $name"
+            recipe_paths[$key]="$recipe_path"
+            echo "xxx: ${recipe_paths[@]}"
+          }
+          while read recipe_path || [ -n "$recipe_path" ]; do
+            if [ ! -n "$recipe_path" ]; then continue; fi
+            if [ "${recipe_path##*.}" != 'recipe' ]; then
+              recipe_path="$recipe_path".recipe
+            fi
+            add_recipe
+          done < recipe_list.txt
+          while read -d '' recipe_path; do
+            add_recipe
+          done < <(find . -maxdepth 1 -type f -name '*.recipe' -print0)
+          for key in ${!recipe_paths[@]}; do
+            recipe_path="${recipe_paths[$key]}"
+            echo "Recipe path: $recipe_path"
+            echo "$recipe_path" >> temp_recipe_list.txt
+          done
+          count=${#recipe_paths[@]}
+          echo "Recipe count: $count"
+          if [ $count -eq 0 ]; then
+            echo 'No recipe needs processing'; exit 1
+          fi
+      - name: Set up Python
+        if: ${{ success() }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Calibre
+        if: ${{ success() }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install libegl1 libopengl0 libxcb-cursor0
+          url=https://download.calibre-ebook.com/linux-installer.sh
+          sudo -v && wget -nv -O- $url | sudo sh /dev/stdin
+      - name: Converting Ebook
+        if: ${{ success() }}
+        run: |
+          convert_ebook() {
+            ebook_path="${recipe_path%.*}.${ext,,}"
+            echo "Converting \"$recipe_path\" > \"$ebook_path\"..."
+            arguments="--authors=\"$author\" --publisher=\"$publisher\""
+            cover="covers/${recipe_path%.*}.png"
+            if [ -f "$cover" ]; then arguments+=" --cover=\"$cover\""; fi
+            echo $arguments | xargs ebook-convert "$recipe_path" "$ebook_path"
+            title=$(ebook-meta "${ebook_path}" | grep '^Title *:' |
+              sed 's/^Title *: *\(.*\)/\1/')
+            filename="${title}.${ext,,}"
+            echo "Renaming \"$ebook_path\" > \"$filename\""
+            mv "$ebook_path" "$filename"
+          }
+          while read recipe_path || [ -n "$recipe_path" ]; do
+            convert_ebook &
+          done < temp_recipe_list.txt
+          wait
+          count=$(find . -maxdepth 1 -type f -name "*.${ext,,}" | wc -l)
+          echo "Ebook count: $count"
+          if [ $count -eq 0 ]; then
+            echo 'No ebook needs send'; exit 1
+          fi
+      - name: Sending Ebook
+        if: ${{ success() }}
+        run: |
+          while read -d '' ebook_path; do
+            filename="$(basename "$ebook_path")"
+            title=${filename%.*}
+            echo "Sending: \"$filename\""
+            calibre-smtp -a "${filename}" -r $relay --port="$port" \
+              -e "${encrypt^^}" -u $from -p "$secret" -s "$title" \
+              "$from" "$to" "Deliver \"${title}\""
+          done < <(find . -maxdepth 1 -type f -name "*.${ext,,}" -print0)
+          echo "All jobs done"

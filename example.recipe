@@ -1,0 +1,68 @@
+from urllib.parse import urljoin
+from datetime import datetime, timedelta
+
+from calibre.web.feeds.news import BasicNewsRecipe
+
+
+class Example(BasicNewsRecipe):
+    title = 'VOA Learning English'
+    description = 'This is example of Calibre recipe.'
+    language = 'en'
+    encoding = 'utf-8'
+
+    oldest_article = 1
+    utc_offset = 8
+    max_articles_per_feed = 5
+    ignore_duplicate_articles = {'url', 'title'}
+    keep_only_tags = [
+        dict(class_=['hdr-container']),
+        dict(id='article-content')]
+    remove_tags = [
+        dict(id='comments'),
+        dict(class_=['wsw__embed', 'share--box'])]
+
+    siteurl = 'https://learningenglish.voanews.com'
+    feed_urls = {
+        'AS IT IS': 'https://learningenglish.voanews.com/z/3521',
+        'ARTS & CULTURE': 'https://learningenglish.voanews.com/z/986',
+        'AMERICAN STORIES': 'https://learningenglish.voanews.com/z/1581',
+        'ASK A TEACHER': 'https://learningenglish.voanews.com/z/5535',
+        'EVERYDAY GRAMMAR': 'https://learningenglish.voanews.com/z/4456',
+        'EDUCATION': 'https://learningenglish.voanews.com/z/959',
+        'HEALTH & LIFESTYLE': 'https://learningenglish.voanews.com/z/955',
+        'SCIENCE & TECHNOLOGY': 'https://learningenglish.voanews.com/z/1579',
+        'WORDS AND THEIR STORIES': 'https://learningenglish.voanews.com/z/987',
+    }
+
+    def parse_index(self):
+        ans = []
+        for topic, url in self.feed_urls.items():
+            articles = []
+            content = self.get_page_content(url)
+            items = content.select('ul#articleItems .media-block__content')
+            for item in items:
+                date = item.span.get_text().strip()
+                if self.out_time_range(date):
+                    continue
+                url = urljoin(self.siteurl, item.a.get('href'))
+                title = item.a.get_text().strip()
+                articles.append(dict(url=url, title=title, date=date))
+            if len(articles) > 0:
+                ans.append((topic, articles))
+        return ans
+
+    def get_page_content(self, url):
+        try:
+            return self.index_to_soup(url)
+        except Exception as e:
+            self.log.error('Fetch article failed(%s): %s' % (e, url))
+
+    def out_time_range(self, date_string):
+        updated = datetime.strptime(date_string, '%B %d, %Y')  # May 19, 2024
+        if self.oldest_article > 0:
+            updated = datetime(updated.year, updated.month, updated.day)
+            current = datetime.utcnow() + timedelta(hours=self.utc_offset)
+            current = datetime(current.year, current.month, current.day)
+            delta = current - updated
+            return delta.days <= 0 or delta.days > self.oldest_article
+        return False
