@@ -8,7 +8,7 @@ Leverages GitHub Actions to automate the delivery of Calibre News.
 
 ## Shortcut
 
- __[Workflow](../../actions/workflows/calibre-news.yml)__ | __[Actions](../../actions)__ | __[Environments](../../settings/environments)__ | [Enable/Disable](../../settings/actions) | [Destroy](../../settings#danger-zone)
+ __[Workflow](../../actions/workflows/calibre-news.yml)__ | __[Environments](../../settings/environments)__ | [Enable/Disable](../../settings/actions) | [Destroy](../../settings#danger-zone)
 
 ## Setup
 
@@ -43,9 +43,9 @@ Additionally, you can manually trigger the delivery on the "__[Actions](../../ac
 
 ## Recipe
 
-For the built-in recipes, you need to add their titles to the plain text file __[recipe_list.txt](recipe_list.txt)__, one title per line. For manually written recipes, simply place them in the root of the project.
+For the built-in recipes, you need to add their titles (found in the `Title` attribute of the recipe file) to the plain text file __[recipe_list.txt](recipe_list.txt)__, one title per line. For manually written recipes, simply place them in the root of the project.
 
-You can specify the cover and style for a recipe. Place the cover image in the "__covers__" folder and the style file in the "__styles__" folder. Both filenames must match the corresponding recipe title or filenames. Be aware that the style may be ignored by Send to Kindle.
+You can specify the cover and style for a recipe. Place the cover image in the "__covers__" folder and the style file in the "__styles__" folder. Both filenames must match the corresponding recipe title or filename. Be aware that the style may be ignored by the Send to Kindle service.
 
 ## Notice
 
