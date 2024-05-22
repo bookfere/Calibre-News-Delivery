@@ -4,7 +4,7 @@ __English__ · [简体中文](README.zh-CN.md)
 
 # Calibre News Delivery
 
-Leverages GitHub Actions to automate the delivery of Calibre News.
+Leverages GitHub Actions to schedule Calibre to send news via email.
 
 ## Shortcut
 
@@ -12,10 +12,10 @@ Leverages GitHub Actions to automate the delivery of Calibre News.
 
 ## Setup
 
-1) Create a project in your repositories using this template.
-2) Navigate to [ [Settings](../../settings) > __[Environments](../../settings/environments)__ ] in the project.
-3) Click "__New environment__" to create a new one called `calibre-news`.
-4) Add the required "__environment secrets__" to it as follows.
+1) Create a project using the __[use this template]__ button located in the top right corner.
+2) Navigate to [ [Settings](../../settings) > __[Environments](../../settings/environments)__ ] in your project.
+3) Click "__New environment__" to create a new environment named `calibre-news`.
+4) Add the required "__environment secrets__" to the environment as follows.
 
 |Name|Required|Description|Example|
 |---|---|---|---|
@@ -28,6 +28,8 @@ Leverages GitHub Actions to automate the delivery of Calibre News.
 |FORMAT|No|The ebook format|epub|
 
 5) Navigate to "__[Actions](../../actions)__" and click [ __Calibre News Delivery__ > __Run workflow__ ] to test.
+
+Normally, you may receive two example ebooks sent from your project.
 
 ## Schedule
 

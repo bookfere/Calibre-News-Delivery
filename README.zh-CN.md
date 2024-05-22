@@ -4,7 +4,7 @@
 
 # Calibre 新闻投递
 
-利用 Calibre 和 GitHub Actions 自动投递新闻.
+利用 GitHub Actions 让 Calibre 定时通过邮箱投递新闻.
 
 ## 快捷入口
 
