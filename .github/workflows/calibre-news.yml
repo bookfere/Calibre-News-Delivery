@@ -41,6 +41,18 @@ jobs:
             variable_keys=$(echo ${absences[@]/%/,})
             echo "Missing variable(s): ${variable_keys/%,/}"; exit 1
           fi
+      - name: Set up Python
+        if: ${{ success() }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Calibre
+        if: ${{ success() }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install libegl1 libopengl0 libxcb-cursor0
+          url=https://download.calibre-ebook.com/linux-installer.sh
+          sudo -v && wget -nv -O- $url | sudo sh /dev/stdin
       - name: Retrieving Recipe
         if: ${{ success() }}
         uses: actions/checkout@v4
@@ -51,12 +63,15 @@ jobs:
           add_recipe() {
             local name="$(basename "$recipe_path")"
             local key=$(echo "$name" | md5sum | cut -d ' ' -f 1)
-            echo "$key = $name"
             recipe_paths[$key]="$recipe_path"
-            echo "xxx: ${recipe_paths[@]}"
           }
           while read recipe_path || [ -n "$recipe_path" ]; do
             if [ ! -n "$recipe_path" ]; then continue; fi
+            title="${recipe_path%.recipe}"
+            result="$(ebook-convert --list-recipes | grep "$title" || true)"
+            if [ ! -n "$result" ]; then
+              echo "Recipe \"$recipe_path\" does not exists"; continue
+            fi
             if [ "${recipe_path##*.}" != 'recipe' ]; then
               recipe_path="$recipe_path".recipe
             fi
@@ -75,33 +90,24 @@ jobs:
           if [ $count -eq 0 ]; then
             echo 'No recipe needs processing'; exit 1
           fi
-      - name: Set up Python
-        if: ${{ success() }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install Calibre
-        if: ${{ success() }}
-        run: |
-          sudo apt-get update
-          sudo apt-get install libegl1 libopengl0 libxcb-cursor0
-          url=https://download.calibre-ebook.com/linux-installer.sh
-          sudo -v && wget -nv -O- $url | sudo sh /dev/stdin
       - name: Converting Ebook
         if: ${{ success() }}
         run: |
           convert_ebook() {
-            ebook_path="${recipe_path%.*}.${ext,,}"
+            ebook_name="${recipe_path%.*}"
+            ebook_path="$ebook_name.${ext,,}"
             echo "Converting \"$recipe_path\" > \"$ebook_path\"..."
             arguments="--authors=\"$author\" --publisher=\"$publisher\""
-            cover="covers/${recipe_path%.*}.png"
+            cover="covers/${ebook_name}.png"
             if [ -f "$cover" ]; then arguments+=" --cover=\"$cover\""; fi
+            style="styles/${ebook_name}.css"
+            if [ -f "$style" ]; then arguments+=" --extra-css=\"$style\""; fi
             echo $arguments | xargs ebook-convert "$recipe_path" "$ebook_path"
             title=$(ebook-meta "${ebook_path}" | grep '^Title *:' |
               sed 's/^Title *: *\(.*\)/\1/')
-            filename="${title}.${ext,,}"
-            echo "Renaming \"$ebook_path\" > \"$filename\""
-            mv "$ebook_path" "$filename"
+            new_ebook_path="${title}.${ext,,}"
+            echo "Renaming \"$ebook_path\" > \"$new_ebook_path\""
+            mv "$ebook_path" "$new_ebook_path"
           }
           while read recipe_path || [ -n "$recipe_path" ]; do
             convert_ebook &
