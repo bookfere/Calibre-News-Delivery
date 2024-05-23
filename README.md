@@ -55,7 +55,7 @@ This project does not accept any PRs for adding recipes. Please do something int
 
 ## Links
 
-* [A brief tour video of this project](https://www.youtube.com/watch?v=f65wCARtHI0)
+* [A brief tour video of this project](https://www.youtube.com/watch?v=sIFsoztF58A)
 * [API documentation for recipes](https://manual.calibre-ebook.com/news_recipe.html)
 * [Calibre recipe repository](https://github.com/kovidgoyal/calibre/tree/master/recipes)
 * [Adding your favorite news website](https://manual.calibre-ebook.com/news.html)
