@@ -4,11 +4,13 @@ __English__ · [简体中文](README.zh-CN.md)
 
 # Calibre News Delivery
 
+![](banner.png)
+
 Leverages GitHub Actions to schedule Calibre to send news via email.
 
 ## Shortcut
 
- __[Workflow](../../actions/workflows/calibre-news.yml)__ | __[Environments](../../settings/environments)__ | [Enable/Disable](../../settings/actions) | [Destroy](../../settings#danger-zone)
+ __[Upload Recipe](../../upload/master)__ | __[Add Built-in Recipe](../../edit/master/recipe_list.txt)__ | __[Update Schedule](../../edit/master/.github/workflows/calibre-news.yml)__ | __[Workflow](../../actions/workflows/calibre-news.yml)__ | __[Environments](../../settings/environments)__ | [Enable/Disable](../../settings/actions) | [Destroy](../../settings#danger-zone)
 
 ## Setup
 
@@ -31,6 +33,9 @@ Leverages GitHub Actions to schedule Calibre to send news via email.
 
 Normally, you may receive two example ebooks sent from your project.
 
+> [!NOTE]
+> 📹 A Brief Tour Video: [https://youtu.be/sIFsoztF58A](https://youtu.be/sIFsoztF58A)
+
 ## Schedule
 
 The default delivery is scheduled to occur daily at midnight (00:00) UTC. You can change it according to your preference. The cron expression `- cron: '0 0 * * *'` can be found in the workflow file located at:
@@ -49,13 +54,14 @@ For the built-in recipes, you need to add their titles (found in the `Title` att
 
 You can specify the cover and style for a recipe. Place the cover image in the "__covers__" folder and the style file in the "__styles__" folder. Both filenames must match the corresponding recipe title or filename. Be aware that the style may be ignored by the Send to Kindle service.
 
+You can upload the recipe files using either the Git tool or GitHub's online uploading feature. The best practice is to test the recipe locally to ensure no errors occur before uploading it.
+
 ## Notice
 
 This project does not accept any PRs for adding recipes. Please do something interesting on your own.
 
 ## Links
 
-* [A brief tour video of this project](https://www.youtube.com/watch?v=sIFsoztF58A)
 * [API documentation for recipes](https://manual.calibre-ebook.com/news_recipe.html)
 * [Calibre recipe repository](https://github.com/kovidgoyal/calibre/tree/master/recipes)
 * [Adding your favorite news website](https://manual.calibre-ebook.com/news.html)
