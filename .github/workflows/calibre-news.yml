@@ -65,18 +65,20 @@ jobs:
             local key=$(echo "$name" | md5sum | cut -d ' ' -f 1)
             recipe_paths[$key]="$recipe_path"
           }
-          while read recipe_path || [ -n "$recipe_path" ]; do
-            if [ ! -n "$recipe_path" ]; then continue; fi
-            title="${recipe_path%.recipe}"
-            result="$(ebook-convert --list-recipes | grep "$title" || true)"
-            if [ ! -n "$result" ]; then
-              echo "Recipe \"$recipe_path\" does not exists"; continue
-            fi
-            if [ "${recipe_path##*.}" != 'recipe' ]; then
-              recipe_path="$recipe_path".recipe
-            fi
-            add_recipe
-          done < recipe_list.txt
+          if [ -f 'recipe_list.txt' ]; then
+            while read recipe_path || [ -n "$recipe_path" ]; do
+              if [ ! -n "$recipe_path" ]; then continue; fi
+              title="${recipe_path%.recipe}"
+              result="$(ebook-convert --list-recipes | grep "$title" || true)"
+              if [ ! -n "$result" ]; then
+                echo "Recipe \"$recipe_path\" does not exists"; continue
+              fi
+              if [ "${recipe_path##*.}" != 'recipe' ]; then
+                recipe_path="$recipe_path".recipe
+              fi
+              add_recipe
+            done < recipe_list.txt
+          fi
           while read -d '' recipe_path; do
             add_recipe
           done < <(find . -maxdepth 1 -type f -name '*.recipe' -print0)

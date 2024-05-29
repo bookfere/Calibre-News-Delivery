@@ -4,6 +4,8 @@
 
 # Calibre 新闻投递
 
+![](banner.png)
+
 利用 GitHub Actions 让 Calibre 定时通过邮箱投递新闻.
 
 ## 快捷入口
