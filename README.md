@@ -60,9 +60,9 @@ You can upload the recipe files using either the Git tool or GitHub's online upl
 
 ## Storage
 
-All converted ebooks will be zipped together and stored in the Artifacts of GitHub Actions. You can find and download them in the job details of each workflow record. Each file will be retained for 90 days from the date it is generated.
+All converted ebooks will be zipped together and stored in the Artifacts of GitHub Actions. You can find and download them in the job details of each workflow record. Each file will be retained for up to 90 days from the date it is generated.
 
-Ebook files can be stored for up to 90 days. You can change the retention period in the "__[Artifact and log retention](../../settings/actions#retention-header)__" section on the Actions settings page. You can also do this through the environment settings.
+You can change the retention period in the "__[Artifact and log retention](../../settings/actions#retention-header)__" section on the Actions settings page. You can also do this through the environment settings (refer to the [Setup](#setup) section).
 
 Be aware that files exceeding the size limit for email attachments will not be sent via SMTP. You will need to download them manually from the Artifacts.
 
