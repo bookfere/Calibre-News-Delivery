@@ -26,7 +26,7 @@ jobs:
       from: ${{ secrets.FROM }}
       to: ${{ secrets.TO }}
       ext: ${{ secrets.FORMAT || 'epub' }}
-      limit: ${{ secrets.SIZE || 25 }}
+      size: ${{ secrets.SIZE || 25 }}
     steps:
       - name: Checking Variable
         run: |
