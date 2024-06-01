@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: calibre-news
     env:
+      output: converted_ebooks
       publisher: bookfere.com
       author: Calibre News Delivery
       relay: ${{ secrets.SMTP }}
@@ -24,7 +25,8 @@ jobs:
       secret: ${{ secrets.SECRET }}
       from: ${{ secrets.FROM }}
       to: ${{ secrets.TO }}
-      ext: ${{ secrets.format || 'epub' }}
+      ext: ${{ secrets.FORMAT || 'epub' }}
+      limit: ${{ secrets.LIMIT || 25 }}
     steps:
       - name: Checking Variable
         run: |
@@ -95,6 +97,7 @@ jobs:
       - name: Converting Ebook
         if: ${{ success() }}
         run: |
+          mkdir $output
           convert_ebook() {
             ebook_name="${recipe_path%.*}"
             ebook_path="$ebook_name.${ext,,}"
@@ -107,7 +110,7 @@ jobs:
             echo $arguments | xargs ebook-convert "$recipe_path" "$ebook_path"
             title=$(ebook-meta "${ebook_path}" | grep '^Title *:' |
               sed 's/^Title *: *\(.*\)/\1/')
-            new_ebook_path="${title}.${ext,,}"
+            new_ebook_path="${output}/${title}.${ext,,}"
             echo "Renaming \"$ebook_path\" > \"$new_ebook_path\""
             mv "$ebook_path" "$new_ebook_path"
           }
@@ -115,7 +118,7 @@ jobs:
             convert_ebook &
           done < temp_recipe_list.txt
           wait
-          count=$(find . -maxdepth 1 -type f -name "*.${ext,,}" | wc -l)
+          count=$(find "$output" -type f -name "*.${ext,,}" | wc -l)
           echo "Ebook count: $count"
           if [ $count -eq 0 ]; then
             echo 'No ebook needs send'; exit 1
@@ -126,9 +129,20 @@ jobs:
           while read -d '' ebook_path; do
             filename="$(basename "$ebook_path")"
             title="${filename%.*}"
+            size=$(du -m "$ebook_path" | cut -f 1)
+            if [ $size -ge $limit ]; then
+              echo "Size exceeds the limitation: $filename"
+              continue
+            fi
             echo "Sending: \"$filename\""
-            calibre-smtp -a "${filename}" -r "$relay" --port="$port" \
+            calibre-smtp -a "$ebook_path" -r "$relay" --port="$port" \
               -e "${encrypt^^}" -u "$from" -p "$secret" -s "$title" \
               "$from" "$to" "Deliver \"${title}\""
-          done < <(find . -maxdepth 1 -type f -name "*.${ext,,}" -print0)
+          done < <(find "$output" -type f -name "*.${ext,,}" -print0)
           echo "All jobs done"
+      - name: Storing Ebook
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Calibre-News-Delivery
+          path: ${{ env.output }}
